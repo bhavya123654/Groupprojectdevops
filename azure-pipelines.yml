@@ -73,5 +73,5 @@ stages:
 
 
     - script: |
-       curl http://localhost:3000/
+       curl http://localhost:5173/
       displayName: 'Check Backend Health'

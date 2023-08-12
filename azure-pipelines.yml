@@ -3,19 +3,84 @@
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
+# Node.js with React and Express Build Pipeline
+
 trigger:
-- master
+  branches:
+    include:
+      - master
 
 pool:
-  vmImage: ubuntu-latest
+  name: 'Default'
+  
+stages:
+- stage: Build
+  jobs:
+  - job: Build_Job
+    displayName: 'Build Job'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '16.x'
+      displayName: 'Install Node.js'
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
+    - script: |
+        cd react-client
+        npm install
+        npm run build
+      displayName: 'Install and Build Frontend'
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+    - script: |
+        npm install
+      displayName: 'Install Backend Dependencies'
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(System.DefaultWorkingDirectory)/'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        replaceExistingArchive: true
+        exclude: |
+          node_modules/**
+          frontend/node_modules/**
+          frontend/build/**
+        verbose: true
+      displayName: 'Archive Code'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        artifactName: 'combined'
+        pathToPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      displayName: 'Publish Combined Artifact'
+
+- stage: Test
+  jobs:
+  - job: Test_Job
+    displayName: 'Test Job'
+    steps:
+    - script: |
+        cd react-client
+        npm install
+        npm test
+      displayName: 'Run Frontend Tests'
+
+    - script: |
+        npm install
+        npm test
+      displayName: 'Run Backend Tests'
+
+    - task: SonarCloudPrepare@1
+      inputs:
+        SonarCloud: 'final_project_sonarCloud'
+        organization: 'GroupProject'
+        scannerMode: 'CLI'
+        configMode: 'manual'
+        cliProjectKey: 'Web-Application-react-main'
+        cliProjectName: 'react-main'
+        cliSources: '$(System.DefaultWorkingDirectory)/backend/src'
+      displayName: 'Prepare SonarCloud Analysis'
+
+    - script: |
+       curl http://localhost:3000/
+      displayName: 'Check Backend Health'

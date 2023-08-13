@@ -70,16 +70,7 @@ stages:
         npm test
       displayName: 'Run Backend Tests'
 
-    - task: SonarCloudPrepare@1
-      inputs:
-        SonarCloud: 'final_project_sonarCloud'
-        organization: 'shreyassingh96'
-        scannerMode: 'CLI'
-        configMode: 'manual'
-        cliProjectKey: 'shreyassingh96_hospital-react-main'
-        cliProjectName: 'hospital-react-main'
-        cliSources: '$(System.DefaultWorkingDirectory)/backend/src'
-      displayName: 'Prepare SonarCloud Analysis'
+    
 
 
 

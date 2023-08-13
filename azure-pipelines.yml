@@ -71,6 +71,17 @@ stages:
       displayName: 'Run Backend Tests'
 
 
+task: SonarCloudPrepare@1
+      inputs:
+        SonarCloud: 'final_project_sonarCloud'
+        organization: 'groupproject'
+        scannerMode: 'CLI'
+        configMode: 'manual'
+        cliProjectKey: 'student'
+        cliProjectName: 'Groupprojectdevops'
+        cliSources: '$(System.DefaultWorkingDirectory)/backend/src'
+      displayName: 'Prepare SonarCloud Analysis'
+
 
     - script: |
        curl http://localhost:5173/
